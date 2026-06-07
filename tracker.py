@@ -5,13 +5,34 @@ from enum import Enum
 date = datetime.date
 time_format: str = "%Y-%m-%dT%H:%M:%S"
 
-habbits_json_path = "./habits.json"
-predefined_habbits_json_path = "./predefined_habbits.json"
+class Log:
+    yellow_color = '\033[93m'
+    green_color = '\033[92m'
+    red_color = '\033[91m'
+    reset_color = '\033[0m'
+    
+    @staticmethod
+    def yellow(text: str):
+        print(f"{Log.yellow_color}{text}{Log.reset_color}")
+    
+    @staticmethod
+    def red(text: str):
+        print(f"{Log.red_color}{text}{Log.reset_color}")
+
+    @staticmethod
+    def green(text: str):
+        print(f"{Log.green_color}{text}{Log.reset_color}")
+
+    
+
+
 
 #defining some enums for periods
 class Period(Enum):
     daily = "daily"
     weekly = "weekly"
+
+    
 
 # as in DAL (data access layer) but for json
 class HabbitJAL:
@@ -22,10 +43,10 @@ class HabbitJAL:
 
 
     # if something goes wrong, here i will repopuplate the main habits.json with a predefined json file
-    def load_predefined_habbits_to_habbit(self) -> list:
-        with open(predefined_habbits_json_path , "r+") as pf:
+    def load_predefined_habbits_to_habbit(self) -> dict:
+        with open(self.predefined_habbits_json_path , "r+") as pf:
             predefined_data = json.load(pf)
-            with open(habbits_json_path, "r+") as f:
+            with open(self.habbits_json_path, "r+") as f:
                 json.dump(predefined_data, f)
                 return predefined_data
             
@@ -35,8 +56,19 @@ class HabbitJAL:
                 data = json.load(f)
                 return data["habbits"]
             except json.JSONDecodeError: # if the user deleted everything for some reason, i will restore everything from scratch, this only happens if there is no valid json
-                return self.load_predefined_habbits_to_habbit()
+                all_data: dict =  self.load_predefined_habbits_to_habbit()
+                return all_data["habbits"]
 
+    def get_user_data(self) -> dict:
+        with open(self.habbits_json_path, "r+") as f:
+            try:
+                data = json.load(f)
+                return data["user"]
+            except json.JSONDecodeError: # if the user deleted everything for some reason, i will restore everything from scratch, this only happens if there is no valid json
+                Log.red("Data is corrupted, resetting everything...")
+                all_data:dict = self.load_predefined_habbits_to_habbit()
+                return all_data["user"]
+            
     def append_to_habbits(self, new_doc:dict) -> dict:
         with open(self.habbits_json_path, "r+") as f:
             data = json.load(f)
@@ -60,19 +92,26 @@ class HabbitJAL:
             return data
         
     def remove_from_habbits(self, new_doc: dict) -> dict:
-        
-        with open(habbits_json_path, "r+") as f:
+        with open(self.habbits_json_path, "r+") as f:
             data = json.load(f)
             data["habbits"].remove(new_doc)
-            print(f"data after removed : {data}")
 
-            with open(habbits_json_path, "w+") as fp:
+            with open(self.habbits_json_path, "w+") as fp:
                 fp.seek(0)
                 json.dump(data, fp, indent=4)
                 json.dump
                 return data    
 
-    
+    def update_user_data(self, user_data: dict) -> dict:
+        with open(self.habbits_json_path, "r+") as fp:
+            data = json.load(fp)
+            with open(self.habbits_json_path, "w+") as f:
+                
+                data["user"] = user_data
+                f.seek(0)
+                json.dump(data, f, indent=4)
+                return data
+            
 class HabbitController:
 
     def __init__(self, habbitJAL: HabbitJAL) -> None:
@@ -91,7 +130,8 @@ class HabbitController:
     def create_habbit(self, name: str, description: str, period: Period):
         # check if period is valid enum
         if period not in [Period.daily, Period.weekly]:
-            print(f"Period not a valid value, it should be {Period.daily} or {Period.weekly}")
+            Log.yellow("Period not a valid value, it should be {Period.daily.value} or {Period.weekly.value}")
+            
         
         # first i will check if there is an existing habgit with that name, if so i will return the user some error
         habbits = self.habbitJAL.get_all_habbits()
@@ -99,7 +139,8 @@ class HabbitController:
     
         for habbit in habbits:
             if habbit["name"].lower() == name.lower():
-                print("Habbit already exists, please use a different name, or add entry to the existing habbit")
+                Log.yellow("Habbit already exists, please use a different name, or add entry to the existing habbit")
+                
                 return
                 
             
@@ -107,13 +148,18 @@ class HabbitController:
         new_habbit = {
             "name" : name,
             "description" : description,
-            "period" : str(period),
+            "period" : period.value,
             "created_at" : str(datetime.datetime.now()),
             "completions" : []
         }
 
         self.habbitJAL.append_to_habbits(new_habbit)
-                    
+        Log.green(f"Habbit {habbit["name"]} succesfully created")
+
+    def get_all_habits(self) -> list:
+        all_habbits:list = self.habbitJAL.get_all_habbits()
+        return all_habbits 
+                   
     def mark_completion(self, name: str) -> dict:
         habbits: list = self.habbitJAL.get_all_habbits()
         updated_habbit: dict = {}
@@ -141,21 +187,17 @@ class HabbitController:
                 habbits.remove(habbit)
 
         if(removed_habbit):
-            print(f"Removed habbit is : {removed_habbit}")
+            Log.green(f"Removed habbit is : {removed_habbit}")
             self.habbitJAL.remove_from_habbits(removed_habbit)
         return removed_habbit
 
+    def update_user_name(self, name: str) -> dict:
+        return self.habbitJAL.update_user_data({"name" : name})
+
+    def get_user_name(self) -> str:
+        user_data = self.habbitJAL.get_user_data()
+        return user_data["name"]
 
 
-
-habbitJAL = HabbitJAL(habbits_json_path=habbits_json_path, predefined_habbits_json_path=predefined_habbits_json_path)
-habbitController = HabbitController(habbitJAL=habbitJAL)
-
-
-habbitController.create_habbit("test", "description", Period.weekly)
-habbitController.delete_habbit("test")
-habbitController.create_habbit("test2", "description", Period.daily)
-habbitController.mark_completion("test2")
-habbitController.delete_habbit("test")
 
 

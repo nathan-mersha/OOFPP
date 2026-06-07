@@ -1,11 +1,11 @@
 {
     "user": {
-        "name": "user"
+        "name": "ola"
     },
     "habbits": [
         {
-            "name": "Daily Exercise",
-            "description": "Complete at least 30 minutes of physical exercise.",
+            "name": "Exercise",
+            "description": "Just walk around a bit, or go cycling, do something!",
             "period": "daily",
             "created_at": "2026-05-05T08:00:00",
             "completions": [
@@ -14,9 +14,9 @@
             ]
         },
         {
-            "name": "Read 30 Minutes",
-            "description": "Read a book or educational material for at least 30 minutes.",
-            "period": "daily",
+            "name": "Read something",
+            "description": "Read a book",
+            "period": "weekly",
             "created_at": "2026-05-05T08:00:00",
             "completions": [
                 "2026-05-05T08:00:00",
@@ -25,8 +25,8 @@
             ]
         },
         {
-            "name": "Drink 8 Glasses of Water",
-            "description": "Consume at least eight glasses of water throughout the day.",
+            "name": "Drink Water",
+            "description": "Drink water through out your day.",
             "period": "daily",
             "created_at": "2026-05-05T08:00:00",
             "completions": [
@@ -38,18 +38,8 @@
             ]
         },
         {
-            "name": "Weekly Review",
-            "description": "Conduct a weekly planning and reflection session.",
-            "period": "weekly",
-            "created_at": "2026-05-05T08:00:00",
-            "completions": [
-                "2026-05-07T10:00:00",
-                "2026-05-14T10:00:00"
-            ]
-        },
-        {
             "name": "Meditate",
-            "description": "Practise mindfulness meditation for at least 10 minutes.",
+            "description": "shut your eyes and think of soemthing",
             "period": "daily",
             "created_at": "2026-05-05T08:00:00",
             "completions": [
@@ -59,23 +49,22 @@
             ]
         },
         {
-            "name": "test2",
-            "description": "description",
-            "period": "Period.daily",
-            "created_at": "2026-06-05 11:35:07.308199",
+            "name": "Do some coding puzzle",
+            "description": "go to leet code and do some exercise",
+            "period": "daily",
+            "created_at": "2026-05-05T08:00:00",
             "completions": [
-                "2026-06-05 11:35:07.308325",
-                "2026-06-05 11:35:08.813017",
-                "2026-06-05 11:35:09.182748",
-                "2026-06-05 11:35:09.336344",
-                "2026-06-05 11:35:09.507991",
-                "2026-06-05 11:35:09.651890",
-                "2026-06-05 11:35:19.762906",
-                "2026-06-05 11:35:20.545575",
-                "2026-06-05 11:35:20.701120",
-                "2026-06-05 11:35:20.869682",
-                "2026-06-05 11:35:21.020259"
+                "2026-05-05T08:00:00",
+                "2026-05-06T08:00:00",
+                "2026-05-07T08:00:00"
             ]
+        },
+        {
+            "name": "ts",
+            "description": "ts",
+            "period": "daily",
+            "created_at": "2026-06-06 18:51:20.372675",
+            "completions": []
         }
     ]
 }
