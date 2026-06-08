@@ -112,7 +112,7 @@ class HabbitController:
         }
 
         self.habbitJAL.append_to_habbits(new_habbit)
-        Log.green(f"Habbit {habbit["name"]} succesfully created")
+        Log.green(f"Habbit {new_habbit['name']} succesfully created")
 
     def get_all_habits(self) -> list:
         all_habbits:list = self.habbitJAL.get_all_habbits()

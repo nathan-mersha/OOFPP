@@ -3,6 +3,7 @@ from helper import Period, Log, to_completion_format
 import sys
 from os import path, system, name
 import datetime as dt
+
 date = dt.date
 
 # converted to dir name instead of the ./habbits.json because depending on where you run the script you may get file not found, you usualy have to run it in the project file itself, but this way you can run it from anywhere
