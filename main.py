@@ -42,15 +42,12 @@ def main():
     '''
     
     while True:
-
         if not intro_completed:
             Log.green(main_menu)
 
-        
         user_input = input(f"Pick a menu {user_name} (press 9 for options): ").strip()
         intro_completed = True
 
-        
         if user_input == "1":
             create_habbit()
         elif user_input == "2":
@@ -273,25 +270,55 @@ Habit Analysis
         elif period == "weekly":
             # map the completion dates to a year and weekly concetnated number (year0weekday)
             formated_weeks = map_completions_to_unique_weeks(habbit["completions"])
-            print(f"Formated unique weeks : {formated_weeks}")
             for i,w1 in enumerate(formated_weeks):
                     w2i =  i + 1
                     if w2i >= len(formated_weeks):
                         break
                     w2 = formated_weeks[w2i]
                     week_diff = w2 - w1
-                    print(f"Week diff : {week_diff}, w1 : {w1} and w2 : {w2}")
                     if week_diff == 1:
                         habbit_streak += 1
             habbit["streak"] = habbit_streak
-        message += f"{j}. {habbit["name"]} ({habbit["period"]}) longest streak is : {habbit_streak}\n";
-    print(message)
-    return  habbit_streak
+        message += f"{j}. {habbit["name"]} ({habbit["period"]}) longest streak is : {habbit_streak}\n"
+   
+    return habbits
 
 
 
 def longest_streak_from_a_habbit():
-    pass
+    habbit_with_streaks = longest_streak_from_all_habbits()
+   
+    longest_streak_daily: dict = {}
+    longest_streak_weekly: dict = {}
+
+    for habbit in habbit_with_streaks:
+        period = habbit.get("period", "daily")
+        streak = habbit.get("streak", 0)
+        if period == "daily":
+            
+            if "streak" not in longest_streak_daily or longest_streak_daily["streak"] < streak:
+                longest_streak_daily = habbit
+            
+        if period == "weekly":
+            if "streak" not in longest_streak_weekly or longest_streak_weekly["streak"] < streak:
+                longest_streak_weekly = habbit
+
+     
+    longest_counts =  {
+        "daily" : longest_streak_daily,
+        "weekly" : longest_streak_weekly
+    }
+
+    message = f'''
+Longest streak
+==============
+Daily : {longest_counts["daily"]["name"]}, Streak : {longest_counts["daily"]["streak"]}
+Weekly : {longest_counts["weekly"]["name"]}, Streak : {longest_counts["weekly"]["streak"]}
+'''
+    
+    Log.green(message)
+    return longest_counts
+
             
 def view_analytics():
     analytics_message = '''
@@ -313,7 +340,8 @@ Analytics Menu
         elif user_input == "2":
             filter_by_period()
         elif user_input == "3":
-            longest_streak_from_all_habbits()
+            habbit_with_streak = longest_streak_from_all_habbits()
+            
         elif user_input == "4":
             longest_streak_from_a_habbit()
         elif user_input == "5":
