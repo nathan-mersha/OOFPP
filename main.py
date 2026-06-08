@@ -1,7 +1,9 @@
-from tracker import HabbitJAL, HabbitController, Period, Log
+from tracker import HabbitJAL, HabbitController
+from helper import Period, Log, to_completion_format
 import sys
 from os import path, system, name
-
+import datetime as dt
+date = dt.date
 
 # converted to dir name instead of the ./habbits.json because depending on where you run the script you may get file not found, you usualy have to run it in the project file itself, but this way you can run it from anywhere
 habbits_json_path = path.join(path.dirname(__file__), "habits.json")
@@ -106,7 +108,8 @@ Pick the one you want to view
 
     picked_habbit_index: int
     try:
-        picked_habbit_index = int(input(menu))
+        Log.green(menu)
+        picked_habbit_index = int(input("Select the one you want to view : "))
     except ValueError as e:
         Log.yellow(f"Please input number only")
         return
@@ -161,6 +164,7 @@ def delete_habbit():
 def mark_off_habbit():
     menu:str = '''
     Pick the one you want to mark as completed
+    ==========================================
 
     '''
     all_habits:list = habbitController.get_all_habits()
@@ -192,7 +196,7 @@ def filter_by_periodicity(period: str, habbits: list) -> list:
 
 def filter_by_period():
     while True:
-        user_input = input("Choose period (daily, weekly)").strip()
+        user_input = input("Choose period (daily, weekly): ").strip()
         if user_input not in ["daily", "weekly"]:
             Log.red("Input incorrect, please enter daily or weekly")
             return
@@ -200,7 +204,9 @@ def filter_by_period():
         all_habbits:list = habbitController.get_all_habits()
         filtered_habbit = filter_by_periodicity(user_input, all_habbits)
         message: str = f'''
-        Your {user_input} habbits
+Your {user_input} habbits
+=========================
+
 '''
         for i, habbit in enumerate(filtered_habbit):
             message = message + f"{i} - {habbit["name"]} ({habbit["period"]}) - {habbit["description"]}\n"
@@ -209,19 +215,94 @@ def filter_by_period():
         return
             
 
+# this will return a unique week starting from jan 1, 2000 as 1 and will go above after this.
+# the reason i am doing this is to get a unique week starting from some point, so that when i 
+# do my weekly analysis i could use this.
+def convert_date_to_unique_week(date : date) -> int:
+    starting_year = 2000
+    week = date.isocalendar().week
+    year = date.isocalendar().year
+
+    year_diff = year - starting_year
+    offset = year_diff * 54
+    return week + offset
+    
+def map_completions_to_unique_weeks(unformated_completions: list[str]) -> list[int]:
+    formated_completion_dates: list[date] = to_completion_format(unformated_completions)
+    formated_completion_dates.sort()
+    unique_weeks: list[int] = []
+    for comp_date in formated_completion_dates:
+        conv_unq_week = convert_date_to_unique_week(comp_date)
+        if conv_unq_week not in unique_weeks:
+            unique_weeks.append(conv_unq_week)
+
+    unique_weeks.sort()         
+    return unique_weeks
+
 def longest_streak_from_all_habbits():
-    pass
+    habbits = habbitController.get_all_habits()
+
+    message = '''
+Habit Analysis
+==============
+
+'''
+    for j,habbit in enumerate(habbits):
+        period = habbit["period"]
+        unformated_completions : list[str] = habbit["completions"]
+        formated_completion_dates: list[date] = to_completion_format(unformated_completions)
+        formated_completion_dates.sort()
+
+        habbit_streak = 0
+        if period == "daily":
+            
+            for i,d1 in enumerate(formated_completion_dates):
+                next_date =  i + 1
+                if next_date >= len(formated_completion_dates):
+                    break
+                d2 = formated_completion_dates[next_date]
+                date_diff = d2 - d1
+                date_diff_days = date_diff.days
+                
+                if date_diff_days <= 1:
+                    habbit_streak += 1
+                else:
+                    habbit_streak = 0 # resteting the streak
+                habbit["streak"] = habbit_streak
+
+        elif period == "weekly":
+            # map the completion dates to a year and weekly concetnated number (year0weekday)
+            formated_weeks = map_completions_to_unique_weeks(habbit["completions"])
+            print(f"Formated unique weeks : {formated_weeks}")
+            for i,w1 in enumerate(formated_weeks):
+                    w2i =  i + 1
+                    if w2i >= len(formated_weeks):
+                        break
+                    w2 = formated_weeks[w2i]
+                    week_diff = w2 - w1
+                    print(f"Week diff : {week_diff}, w1 : {w1} and w2 : {w2}")
+                    if week_diff == 1:
+                        habbit_streak += 1
+            habbit["streak"] = habbit_streak
+        message += f"{j}. {habbit["name"]} ({habbit["period"]}) longest streak is : {habbit_streak}\n";
+    print(message)
+    return  habbit_streak
+
+
 
 def longest_streak_from_a_habbit():
     pass
             
 def view_analytics():
     analytics_message = '''
-        1. Show all my habbits
-        2. Filter by period (daily, weekly)
-        3. What is my longest streak from all my habbits?
-        4. What is my longest streak of a habbit?
-        5. Return to main menu
+Analytics Menu
+==============
+
+1. Show all my habbits
+2. Filter by period (daily, weekly)
+3. What is my longest streak from all my habbits?
+4. What is my longest streak of a habbit?
+5. Return to main menu
 '''
     while True:
         Log.green(analytics_message)
@@ -236,6 +317,7 @@ def view_analytics():
         elif user_input == "4":
             longest_streak_from_a_habbit()
         elif user_input == "5":
+            Log.green("Returning to main menu")
             return
         else:
             Log.red("Wrong option")

@@ -1,38 +1,6 @@
-import datetime
-from dateutil import parser
+
 import json
-from enum import Enum
-date = datetime.date
-time_format: str = "%Y-%m-%dT%H:%M:%S"
-
-class Log:
-    yellow_color = '\033[93m'
-    green_color = '\033[92m'
-    red_color = '\033[91m'
-    reset_color = '\033[0m'
-    
-    @staticmethod
-    def yellow(text: str):
-        print(f"{Log.yellow_color}{text}{Log.reset_color}")
-    
-    @staticmethod
-    def red(text: str):
-        print(f"{Log.red_color}{text}{Log.reset_color}")
-
-    @staticmethod
-    def green(text: str):
-        print(f"{Log.green_color}{text}{Log.reset_color}")
-
-    
-
-
-
-#defining some enums for periods
-class Period(Enum):
-    daily = "daily"
-    weekly = "weekly"
-
-    
+from helper import Log,Period, now, date_to_string
 
 # as in DAL (data access layer) but for json
 class HabbitJAL:
@@ -117,16 +85,6 @@ class HabbitController:
     def __init__(self, habbitJAL: HabbitJAL) -> None:
         self.habbitJAL = habbitJAL
 
-
-    def to_completion_format(self, completions: list[str]) -> list[date]:
-        completion_dates: list[date] = []
-        for completion in completions:
-            parsed_date = parser.isoparse(completion.strip());
-            completion_dates.append(parsed_date)
-        return completion_dates
-
-    
-    
     def create_habbit(self, name: str, description: str, period: Period):
         # check if period is valid enum
         if period not in [Period.daily, Period.weekly]:
@@ -149,7 +107,7 @@ class HabbitController:
             "name" : name,
             "description" : description,
             "period" : period.value,
-            "created_at" : str(datetime.datetime.now()),
+            "created_at" : date_to_string(now()),
             "completions" : []
         }
 
@@ -167,7 +125,7 @@ class HabbitController:
         for habbit in habbits:
             if(habbit["name"].lower() == name.lower()):
                 completions: list[str] = habbit["completions"]
-                completions.append(str(datetime.datetime.now()))
+                completions.append(date_to_string(now()))
                 updated_habbit = habbit
                 #update to the actual json here
                 self.habbitJAL.update_habbit(updated_habbit)
