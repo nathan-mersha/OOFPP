@@ -34,13 +34,15 @@ menu: str = '''
     9 : Help
 '''
 def main():
+    """the main loop, just keeps requesting the user and calling the right function based on what they type"""
+
     intro_completed: bool = False
     main_menu: str = f'''
-    Hello {user_name},
-    Welcome back to habbit tracker
-    ==============================
-    {menu}
-    '''
+Hello {user_name},
+Welcome back to habbit tracker
+==============================
+{menu}
+'''
     
     while True:
         if not intro_completed:
@@ -73,12 +75,15 @@ def main():
             Log.yellow(f"Please input a valid command, print 9 or help for available options ")
 
 def show_options():
+    """just prints the menu options"""
     Log.blue(menu)
 
 def clear_ui():
+    """clears the terminal screen, this will call the sytems cls, i have tested this on ubuntu, not so sure if it works on windows"""
     system('cls' if name=='nt' else 'clear')
 
 def create_habbit():
+    """asks the user for the habit name, description and period then creates it"""
     name:str = input("Habbit name : ")
     description:str = input("Habbit description : ")
     period = input(f"Period ({Period.daily.value}, {Period.weekly.value}) : ")
@@ -95,6 +100,7 @@ def create_habbit():
     
 
 def view_habbit():
+    """shows the user a list of all habits and lets them pick one to see more detail"""
     menu:str = '''
 Pick the one you want to view
 =============================
@@ -135,6 +141,7 @@ Pick the one you want to view
     
 
 def delete_habbit():
+    """shows the habit list and deletes whichever one the user picks"""
     menu:str = '''
 Pick the one you want to delete
 ===============================
@@ -162,6 +169,7 @@ Pick the one you want to delete
     habbitController.delete_habbit(picked_habbit["name"])
 
 def mark_off_habbit():
+    """shows the habit list and marks whichever one the user picks as completed"""
     menu:str = '''
 Pick the one you want to mark as completed
 ==========================================
@@ -191,12 +199,14 @@ Pick the one you want to mark as completed
 
 
 def filter_by_periodicity(period: str, habbits: list) -> list:
+    """filters the habit list by period (daily or weekly), i used a lambda here since it's just a one liner filter"""
     # the reason i am using a lambda here is because this function will not be reused, it's just a simple filtering func
     filter_logic = lambda habbit : True if habbit["period"] == period else False
     filtered = filter(filter_logic, habbits)
     return list(filtered)    
 
 def filter_by_period():
+    """asks the user for a period and shows only habits matching that period"""
     while True:
         user_input = input("Choose period (daily, weekly): ").strip()
         if user_input not in ["daily", "weekly"]:
@@ -221,6 +231,9 @@ Your {user_input} habbits
 # the reason i am doing this is to get a unique week starting from some point, so that when i 
 # do my weekly analysis i could use this.
 def convert_date_to_unique_week(date : date) -> int:
+    """converts a date to a unique week number starting from year 2000,
+    this way i can compare weekly completions by just doing w2 - w1 == 1
+    """
     starting_year = 2000
     week = date.isocalendar().week
     year = date.isocalendar().year
@@ -230,6 +243,7 @@ def convert_date_to_unique_week(date : date) -> int:
     return week + offset
     
 def map_completions_to_unique_weeks(unformated_completions: list[str]) -> list[int]:
+    """takes a list of completion date strings and returns a sorted list of unique week numbers"""
     formated_completion_dates: list[date] = to_completion_format(unformated_completions)
     formated_completion_dates.sort()
     unique_weeks: list[int] = []
@@ -242,6 +256,9 @@ def map_completions_to_unique_weeks(unformated_completions: list[str]) -> list[i
     return unique_weeks
 
 def longest_streak_from_all_habbits() -> map:
+    """goes through all habits and calculates the streak for each one,
+    for daily habits it checks consecutive days, for weekly it checks consecutive weeks
+    """
     habbits = habbitController.get_all_habits()
 
     message = '''
@@ -290,12 +307,71 @@ Habbit Analysis
     return {"message" : message, "habbits" : habbits}
 
 
+def streak_for_a_specific_habbit():
+    """lets the user pick a specific habit from the list and shows that habit's streak"""
+    menu:str = '''
+Pick the one you want to check the streak for
+=============================================
+
+'''
+    all_habits:list = habbitController.get_all_habits()
+    for i, habbit in enumerate(all_habits):
+        menu = menu + f"{i} - {habbit['name']} ({habbit['period']}) - {habbit['description']}\n"
+
+    picked_habbit_index: int
+    try:
+        Log.blue(menu)
+        picked_habbit_index = int(input("Pick a habbit: "))
+    except ValueError as e:
+        Log.red(f"Please input number only")
+        return
+
+    if picked_habbit_index < 0 or picked_habbit_index > len(all_habits):
+        Log.yellow(f"Please pick a number between 0 and {len(all_habits)}")
+        return
+
+    picked_habbit = all_habits[picked_habbit_index]
+    period = picked_habbit["period"]
+    unformated_completions : list[str] = picked_habbit["completions"]
+    formated_completion_dates: list[date] = to_completion_format(unformated_completions)
+    formated_completion_dates.sort()
+
+    habbit_streak = 0
+    if period == "daily":
+        for i,d1 in enumerate(formated_completion_dates):
+            next_date = i + 1
+            if next_date >= len(formated_completion_dates):
+                break
+            d2 = formated_completion_dates[next_date]
+            date_diff = d2 - d1
+            if date_diff.days <= 1:
+                habbit_streak += 1
+            else:
+                habbit_streak = 0
+
+    elif period == "weekly":
+        formated_weeks = map_completions_to_unique_weeks(picked_habbit["completions"])
+        for i,w1 in enumerate(formated_weeks):
+            w2i = i + 1
+            if w2i >= len(formated_weeks):
+                break
+            w2 = formated_weeks[w2i]
+            if w2 - w1 == 1:
+                habbit_streak += 1
+
+    Log.green(f"""
+Streak for : {picked_habbit['name']} ({period})
+============================================
+Streak : {habbit_streak}
+""")
+
+
 def longest_streak_from_a_habbit():
+    """finds which habit has the longest streak, separately for daily and weekly"""
     response = longest_streak_from_all_habbits()
     habbit_with_streaks = response["habbits"]
     longest_streak_daily: dict = {}
     longest_streak_weekly: dict = {}
-
    
     for habbit in habbit_with_streaks:
         period = habbit.get("period", "daily")
@@ -326,6 +402,7 @@ Weekly : {longest_counts["weekly"]["name"]}, Streak : {longest_counts["weekly"][
 
             
 def view_analytics():
+    """shows the analytics sub-menu and keeps looping until the user goes back"""
     analytics_message = '''
 Analytics Menu
 ==============
@@ -333,8 +410,9 @@ Analytics Menu
 1. Show all my habbits
 2. Filter by period (daily, weekly)
 3. What is my longest streak from all my habbits?
-4. What is my longest streak of a habbit?
-5. Return to main menu
+4. What is the streak for a specific habbit?
+5. What is my longest streak of a habbit?
+6. Return to main menu
 '''
     while True:
         Log.blue(analytics_message)
@@ -349,14 +427,17 @@ Analytics Menu
             message = streak["message"]
             Log.green(message)
         elif user_input == "4":
-            longest_streak_from_a_habbit()
+            streak_for_a_specific_habbit()
         elif user_input == "5":
+            longest_streak_from_a_habbit()
+        elif user_input == "6":
             Log.green("Returning to main menu")
             return
         else:
             Log.red("Wrong option")
 
 def update_name():
+    """asks the user for a new name and saves it, also updates the in-memory variable so it shows right away"""
     name: str = input("What do you want me to call you? : ")
     update_data = habbitController.update_user_name(name)
 
@@ -368,10 +449,12 @@ def update_name():
     Log.green(f"Great!! name updated to : {user_name}")
 
 def exit_from_the_app():
-    Log.green("Good bye {habbitController.get_user_name()}")
+    """prints a goodbye message and exits"""
+    Log.green(f"Good bye {habbitController.get_user_name()}")
     sys.exit()
 
 def about_the_developer_and_the_project():
+   
     Log.green(f'''
          I      UUU     UUU
                 UUU     UUU
