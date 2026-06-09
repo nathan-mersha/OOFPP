@@ -454,7 +454,7 @@ def exit_from_the_app():
     sys.exit()
 
 def about_the_developer_and_the_project():
-   
+    """shows a little ascii art with the project and student info"""
     Log.green(f'''
          I      UUU     UUU
                 UUU     UUU
