@@ -97,7 +97,7 @@ class HabbitController:
     
         for habbit in habbits:
             if habbit["name"].lower() == name.lower():
-                Log.yellow("Habbit already exists, please use a different name, or add entry to the existing habbit")
+                Log.red("Habbit already exists, please use a different name, or add entry to the existing habbit")
                 
                 return
                 
@@ -145,7 +145,7 @@ class HabbitController:
                 habbits.remove(habbit)
 
         if(removed_habbit):
-            Log.green(f"Removed habbit is : {removed_habbit}")
+            Log.green(f"Removed habbit is : {removed_habbit["name"]}")
             self.habbitJAL.remove_from_habbits(removed_habbit)
         return removed_habbit
 

@@ -6,10 +6,11 @@ date = dt.date
 time_format: str = "%Y-%m-%dT%H:%M:%S"
 
 class Log:
-    yellow_color = '\033[93m'
-    green_color = '\033[92m'
-    red_color = '\033[91m'
-    reset_color = '\033[0m'
+    yellow_color = '\033[93m' # i will use this for warning
+    green_color = '\033[92m' # i will use this for success message
+    red_color = '\033[91m' # i will use this for error message
+    reset_color = '\033[0m' # this is just white, used for reset
+    blue_color = '\033[94m' # i will use this for menu color
     
     @staticmethod
     def yellow(text: str):
@@ -22,6 +23,10 @@ class Log:
     @staticmethod
     def green(text: str):
         print(f"{Log.green_color}{text}{Log.reset_color}")
+
+    @staticmethod
+    def blue(text: str):
+        print(f"{Log.blue_color}{text}{Log.reset_color}")    
 
     
 #defining some enums for periods

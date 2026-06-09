@@ -44,7 +44,7 @@ def main():
     
     while True:
         if not intro_completed:
-            Log.green(main_menu)
+            Log.blue(main_menu)
 
         user_input = input(f"Pick a menu {user_name} (press 9 for options): ").strip()
         intro_completed = True
@@ -70,10 +70,10 @@ def main():
         elif user_input == "clear" or user_input == "cls":
             clear_ui()
         else:
-            Log.red(f"Please input a valid command, print 9 or help for available options ")
+            Log.yellow(f"Please input a valid command, print 9 or help for available options ")
 
 def show_options():
-    Log.green(menu)
+    Log.blue(menu)
 
 def clear_ui():
     system('cls' if name=='nt' else 'clear')
@@ -106,7 +106,7 @@ Pick the one you want to view
 
     picked_habbit_index: int
     try:
-        Log.green(menu)
+        Log.blue(menu)
         picked_habbit_index = int(input("Select the one you want to view : "))
     except ValueError as e:
         Log.yellow(f"Please input number only")
@@ -136,18 +136,20 @@ Pick the one you want to view
 
 def delete_habbit():
     menu:str = '''
-    Pick the one you want to delete
+Pick the one you want to delete
+===============================
 
-    '''
+'''
     all_habits:list = habbitController.get_all_habits()
     for i, habbit in enumerate(all_habits):
         menu = menu + f"{i} - {habbit["name"]} ({habbit["period"]}) - {habbit["description"]}\n"
 
     picked_habbit_index: int
     try:
-        picked_habbit_index = int(input(menu))
+        Log.blue(menu)
+        picked_habbit_index = int(input("Pick a habbit to delete : "))
     except ValueError as e:
-        Log.yellow(f"Please input number only")
+        Log.red(f"Please input number only")
         return
 
     if picked_habbit_index < 0 or picked_habbit_index > len(all_habits):
@@ -161,19 +163,20 @@ def delete_habbit():
 
 def mark_off_habbit():
     menu:str = '''
-    Pick the one you want to mark as completed
-    ==========================================
+Pick the one you want to mark as completed
+==========================================
 
-    '''
+'''
     all_habits:list = habbitController.get_all_habits()
     for i, habbit in enumerate(all_habits):
         menu = menu + f"{i} - {habbit["name"]} ({habbit["period"]}) - {habbit["description"]}\n"
 
     picked_habbit_index: int
     try:
-        picked_habbit_index = int(input(menu))
+        Log.blue(menu)
+        picked_habbit_index = int(input("Pick a habbit: "))
     except ValueError as e:
-        Log.yellow(f"Please input number only")
+        Log.red(f"Please input number only")
         return
 
     if picked_habbit_index < 0 or picked_habbit_index > len(all_habits):
@@ -184,6 +187,7 @@ def mark_off_habbit():
 
     # the reason this works is because the name of the habit is actually unique
     habbitController.mark_completion(picked_habbit["name"])
+    Log.green(f"Habbit : {habbit["name"]} marked as completed.")
 
 
 def filter_by_periodicity(period: str, habbits: list) -> list:
@@ -237,11 +241,11 @@ def map_completions_to_unique_weeks(unformated_completions: list[str]) -> list[i
     unique_weeks.sort()         
     return unique_weeks
 
-def longest_streak_from_all_habbits():
+def longest_streak_from_all_habbits() -> map:
     habbits = habbitController.get_all_habits()
 
     message = '''
-Habit Analysis
+Habbit Analysis
 ==============
 
 '''
@@ -282,21 +286,21 @@ Habit Analysis
             habbit["streak"] = habbit_streak
         message += f"{j}. {habbit["name"]} ({habbit["period"]}) longest streak is : {habbit_streak}\n"
    
-    return habbits
-
+    
+    return {"message" : message, "habbits" : habbits}
 
 
 def longest_streak_from_a_habbit():
-    habbit_with_streaks = longest_streak_from_all_habbits()
-   
+    response = longest_streak_from_all_habbits()
+    habbit_with_streaks = response["habbits"]
     longest_streak_daily: dict = {}
     longest_streak_weekly: dict = {}
 
+   
     for habbit in habbit_with_streaks:
         period = habbit.get("period", "daily")
         streak = habbit.get("streak", 0)
         if period == "daily":
-            
             if "streak" not in longest_streak_daily or longest_streak_daily["streak"] < streak:
                 longest_streak_daily = habbit
             
@@ -333,7 +337,7 @@ Analytics Menu
 5. Return to main menu
 '''
     while True:
-        Log.green(analytics_message)
+        Log.blue(analytics_message)
         user_input = input(f"Choose a menu, {user_name}: ")
 
         if user_input == "1":
@@ -341,8 +345,9 @@ Analytics Menu
         elif user_input == "2":
             filter_by_period()
         elif user_input == "3":
-            habbit_with_streak = longest_streak_from_all_habbits()
-            
+            streak = longest_streak_from_all_habbits()
+            message = streak["message"]
+            Log.green(message)
         elif user_input == "4":
             longest_streak_from_a_habbit()
         elif user_input == "5":
