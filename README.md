@@ -3,6 +3,8 @@
 Nathan Mersha Degineh, 102303079
 Object Oriented and Functional Programming with Python (DLBDSOOFPP01)
 
+GitHub Repository: https://github.com/nathan-mersha/OOFPP
+
 This is a simple habit tracking app that runs on the command line. No fancy UI, no database, just a menu and a JSON file to save everything.
 You can create daily and weekly habits, check them off, view your streaks, and delete habits you don't need anymore. The app also comes with 5 habits already loaded with 4 weeks of sample data so you can test the analytics right away.
 
