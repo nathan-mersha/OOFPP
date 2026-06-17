@@ -97,13 +97,13 @@ def test_get_all_habbit():
     all_habbit = habbitController.get_all_habits()
     assert len(all_habbit) == 2 # why?? because i have created one deaily and on weekly, and not deleted yet.
 
-def update_user_data():
+def test_update_user_data():
     habbitController.update_user_name({"name": user_data["name"]})
     updated_user_name = habbitController.get_user_name()
 
     assert user_data["name"] == updated_user_name["name"]
 
-def get_user_data():
+def test_get_user_data():
     user_data = habbitController.get_user_name()
     assert type(user_data["name"]) is str
 
@@ -126,7 +126,7 @@ test_daily_create_habbit()
 test_weekly_mark_completion()
 test_daily_mark_completion()
 test_get_all_habbit()
-update_user_data()
-get_user_data()
+test_update_user_data()
+test_get_user_data()
 test_daily_delete_habbit()
 test_weekly_delete_habbit()
